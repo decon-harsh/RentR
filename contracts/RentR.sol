@@ -29,7 +29,7 @@ contract RentR is ReentrancyGuard
         string sex;
         uint256 age;
         uint256 aadharNumber;
-
+        string imageURI;
     }
 
     struct Owner
@@ -42,6 +42,7 @@ contract RentR is ReentrancyGuard
     struct Renter
     {
         address renterAddress;
+        PersonalDetails personalDetails;
         uint256 startDate;
         uint256 endDate;
         uint256 paymentDate;
@@ -57,7 +58,7 @@ contract RentR is ReentrancyGuard
 
     // Local Variables
     address public manager;
-    uint256 servicePrice = 0.000477 ether;
+    uint256 servicePrice = 0.000477 ether; //100 INR - 477000000000000 wei 
 
     // Maps
     mapping(address => Owner) private owners; 
@@ -83,7 +84,8 @@ contract RentR is ReentrancyGuard
         string memory _emailId,
         string memory _sex,
         uint256 _age,
-        uint256 _aadharNumber
+        uint256 _aadharNumber,
+        string memory _imageURI
     ) public payable nonReentrant returns(bool success)
     {
         // Owner needs to pay the servicePrice once
@@ -95,7 +97,8 @@ contract RentR is ReentrancyGuard
                 _emailId,
                 _sex,
                 _age,
-                _aadharNumber
+                _aadharNumber,
+                _imageURI
             ),
             true
         );
@@ -107,6 +110,7 @@ contract RentR is ReentrancyGuard
     // Lists a Renter
     function listRenter(
         address _renterAddress,
+        PersonalDetails memory _personal_details,
         uint256 _startDate,
         uint256 _endDate,
         uint256 _paymentDate,
@@ -114,12 +118,13 @@ contract RentR is ReentrancyGuard
         uint256 _annualIncrementRate,
         string memory _agreementURI,
         uint256 _lastPaymentDate
-    ) public payable nonReentrant returns(bool success)
+    ) public nonReentrant returns(bool success)
     {
         // Only owner can list a renter
         require(owners[msg.sender].flag, "You must be an owner");        
         
         renters[_renterAddress].renterAddress = _renterAddress;
+        renters[_renterAddress].personalDetails =  _personal_details;
         renters[_renterAddress].startDate = _startDate;
         renters[_renterAddress].endDate = _endDate;
         renters[_renterAddress].paymentDate = _paymentDate;
@@ -132,14 +137,15 @@ contract RentR is ReentrancyGuard
         renters[_renterAddress].flag = true;
 
         return true;   
-    }
+    } 
 
     function getOwnerDetails(address ownerAddress) public view returns (
         string memory _name,
         string memory _emailId,
         string memory _sex,
         uint256 _age,
-        uint256 _aadharNumber
+        uint256 _aadharNumber,
+        string memory _imageURI
     ) 
     {
        _name =  owners[ownerAddress].personalDetails.name;
@@ -147,9 +153,11 @@ contract RentR is ReentrancyGuard
        _sex = owners[ownerAddress].personalDetails.sex;
        _age = owners[ownerAddress].personalDetails.age;
        _aadharNumber = owners[ownerAddress].personalDetails.aadharNumber;
+       _imageURI = owners[ownerAddress].personalDetails.imageURI;
     }  
 
     function getRenterDetails(address renterAddress) public view returns (
+        PersonalDetails memory _personalDetails,
         uint256 _startDate,
         uint256 _endDate,
         uint256 _paymentDate,
@@ -160,6 +168,7 @@ contract RentR is ReentrancyGuard
         address _ownerAddress
     ) 
     {
+        _personalDetails = renters[renterAddress].personalDetails;
         _startDate = renters[renterAddress].startDate;
         _endDate = renters[renterAddress].endDate;
         _paymentDate = renters[renterAddress].paymentDate;
